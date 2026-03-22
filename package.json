@@ -1,0 +1,14 @@
+{
+  "name": "nextjs-livekit-voice-agent",
+  "private": true,
+  "packageManager": "pnpm@10.32.1",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:agent": "pnpm --filter agent dev",
+    "db:generate": "pnpm --filter db prisma generate",
+    "db:migrate": "pnpm --filter db prisma migrate dev",
+    "db:studio": "pnpm --filter db prisma studio",
+    "lint": "pnpm -r lint"
+  }
+}
+

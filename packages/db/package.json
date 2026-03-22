@@ -1,0 +1,27 @@
+{
+  "name": "db",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "prisma": "prisma",
+    "generate": "prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.37",
+    "prisma": "^6",
+    "typescript": "^5"
+  }
+}

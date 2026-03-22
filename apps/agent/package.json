@@ -1,0 +1,29 @@
+{
+  "name": "agent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts dev",
+    "dev:watch": "tsx watch src/index.ts -- dev",
+    "connect": "tsx src/index.ts connect",
+    "download-files": "tsx src/index.ts download-files",
+    "start": "node --enable-source-maps dist/index.js start",
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@livekit/agents": "^1.2.0",
+    "@livekit/agents-plugin-livekit": "^1.2.0",
+    "@livekit/agents-plugin-openai": "^1.2.0",
+    "@livekit/agents-plugin-silero": "^1.2.0",
+    "db": "workspace:*",
+    "dotenv": "^17.3.1",
+    "openai": "^6.32.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}

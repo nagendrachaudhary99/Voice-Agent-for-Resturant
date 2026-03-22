@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MessageRole {
+  user
+  assistant
+  system
+}
+
+model AgentSession {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  roomName  String    @unique
+  messages  Message[]
+  memories  MemoryChunk[]
+}
+
+model Message {
+  id        String       @id @default(cuid())
+  createdAt DateTime     @default(now())
+  sessionId String
+  role      MessageRole
+  content   String
+
+  session AgentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
+model MemoryChunk {
+  id        String      @id @default(cuid())
+  createdAt DateTime    @default(now())
+  sessionId String?
+  content   String
+  metadata  Json?
+
+  session    AgentSession?     @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  embeddings MemoryEmbedding[]
+
+  @@index([sessionId, createdAt])
+}
+
+// Embedding dimension for OpenAI `text-embedding-3-small` is 1536.
+// We store it as a `vector(1536)` column via pgvector.
+model MemoryEmbedding {
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  chunkId   String
+  model     String
+
+  // Requires pgvector extension.
+  embedding Unsupported("vector(1536)")
+
+  chunk MemoryChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
+
+  @@index([chunkId])
+}
+
