@@ -14,14 +14,17 @@
     "build": "tsc -p tsconfig.json",
     "lint": "eslint .",
     "prisma": "prisma",
-    "generate": "prisma generate"
+    "generate": "prisma generate",
+    "menu:import": "tsx scripts/import-menu.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6"
+    "@prisma/client": "^6",
+    "papaparse": "^5.5.3"
   },
   "devDependencies": {
     "@types/node": "^20.19.37",
     "prisma": "^6",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

@@ -28,6 +28,12 @@ type TranscriptItem = {
   text: string;
 };
 
+type ToolEvent = {
+  ts: number;
+  name: string;
+  payload: unknown;
+};
+
 export default function VoiceClient() {
   const [status, setStatus] = useState<
     "idle" | "creating_session" | "connecting" | "connected" | "error"
@@ -36,6 +42,7 @@ export default function VoiceClient() {
   const [session, setSession] = useState<SessionResponse | null>(null);
   const [identity, setIdentity] = useState<string>("");
   const [transcript, setTranscript] = useState<TranscriptItem[]>([]);
+  const [toolEvents, setToolEvents] = useState<ToolEvent[]>([]);
 
   const roomRef = useRef<Room | null>(null);
   const localMicRef = useRef<MediaStreamTrack | null>(null);
@@ -61,6 +68,7 @@ export default function VoiceClient() {
   const start = useCallback(async () => {
     setError(null);
     setTranscript([]);
+    setToolEvents([]);
 
     try {
       setStatus("creating_session");
@@ -89,19 +97,35 @@ export default function VoiceClient() {
             typeof msg === "object" &&
             msg !== null &&
             // @ts-expect-error runtime guard below
-            msg.type === "transcript" &&
-            // @ts-expect-error runtime guard below
-            typeof msg.text === "string"
+            (msg.type === "transcript" || msg.type === "tool")
           ) {
-            setTranscript((t) => [
-              ...t,
-              {
-                ts: Date.now(),
-                from: participant?.identity ?? "unknown",
-                // @ts-expect-error runtime guard above
-                text: msg.text,
-              },
-            ]);
+            // @ts-expect-error runtime guard above
+            if (msg.type === "tool") {
+              setToolEvents((e) => [
+                ...e,
+                {
+                  ts: Date.now(),
+                  // @ts-expect-error runtime guard above
+                  name: typeof msg.name === "string" ? msg.name : "tool",
+                  payload: msg,
+                },
+              ]);
+              return;
+            }
+
+            // transcript
+            // @ts-expect-error runtime guard above
+            if (typeof msg.text === "string") {
+              setTranscript((t) => [
+                ...t,
+                {
+                  ts: Date.now(),
+                  from: participant?.identity ?? "unknown",
+                  // @ts-expect-error runtime guard above
+                  text: msg.text,
+                },
+              ]);
+            }
             return;
           }
         } catch {
@@ -272,14 +296,41 @@ export default function VoiceClient() {
 
           <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
             <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              Audio
+              Tools / cart events
             </div>
-            <div className="text-sm text-zinc-600 dark:text-zinc-400">
-              Your mic is published when connected. Remote audio (agent speech)
-              will autoplay here.
+            <div className="h-56 overflow-auto rounded-lg bg-zinc-50 p-2 text-xs text-zinc-900 dark:bg-black/40 dark:text-zinc-100">
+              {toolEvents.length === 0 ? (
+                <div className="text-zinc-500 dark:text-zinc-400">
+                  No tool events yet. When the agent calls tools (menu/cart/order),
+                  they’ll appear here.
+                </div>
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {toolEvents.map((e) => (
+                    <li key={e.ts} className="leading-snug">
+                      <div className="font-mono text-zinc-600 dark:text-zinc-400">
+                        {e.name}
+                      </div>
+                      <pre className="whitespace-pre-wrap break-words text-[11px]">
+                        {JSON.stringify(e.payload, null, 2)}
+                      </pre>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <div ref={audioContainerRef} className="mt-3" />
           </div>
+        </div>
+
+        <div className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            Audio
+          </div>
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+            Your mic is published when connected. Remote audio (agent speech)
+            will autoplay here.
+          </div>
+          <div ref={audioContainerRef} className="mt-3" />
         </div>
       </div>
     </section>

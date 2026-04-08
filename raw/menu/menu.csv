@@ -1,0 +1,6 @@
+code,name,category,description,price_cents,is_available,prep_time_min
+pepperoni_pizza,Pepperoni Pizza,Pizza,Classic pepperoni with mozzarella,1299,true,15
+margherita_pizza,Margherita Pizza,Pizza,Tomato basil mozzarella,1199,true,15
+ceasar_salad,Caesar Salad,Salads,Romaine parmesan croutons,899,true,8
+coke_can,Coke (Can),Drinks,12oz can,199,true,0
+

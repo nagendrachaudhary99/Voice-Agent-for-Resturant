@@ -1,3 +1,6 @@
+-- Enable pgvector (required for MemoryEmbedding.embedding vector(1536))
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- CreateEnum
 CREATE TYPE "MessageRole" AS ENUM ('user', 'assistant', 'system');
 

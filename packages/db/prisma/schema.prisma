@@ -13,12 +13,25 @@ enum MessageRole {
   system
 }
 
+enum OrderType {
+  pickup
+  delivery
+  reservation
+}
+
+enum OrderStatus {
+  draft
+  confirmed
+  cancelled
+}
+
 model AgentSession {
   id        String    @id @default(cuid())
   createdAt DateTime  @default(now())
   roomName  String    @unique
   messages  Message[]
   memories  MemoryChunk[]
+  orders    Order[]
 }
 
 model Message {
@@ -60,5 +73,96 @@ model MemoryEmbedding {
   chunk MemoryChunk @relation(fields: [chunkId], references: [id], onDelete: Cascade)
 
   @@index([chunkId])
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  name        String?
+  phoneE164   String   @unique
+  preferences Json?
+
+  orders      Order[]
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Stable identifier for imports/tooling (e.g. "pepperoni_pizza").
+  code        String   @unique
+
+  name        String
+  category    String?
+  description String?
+
+  // Store money as integer cents to avoid float rounding.
+  priceCents  Int
+
+  isAvailable Boolean  @default(true)
+  prepTimeMin Int?
+
+  orderItems  OrderItem[]
+
+  @@index([name])
+  @@index([category])
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  type         OrderType
+  status       OrderStatus @default(draft)
+
+  // Optional link to the voice session / LiveKit room session.
+  sessionId    String?
+  session      AgentSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  customerId   String?
+  customer     Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  deliveryAddress      String?
+  specialInstructions  String?
+
+  subtotalCents Int?
+  taxCents      Int?
+  totalCents    Int?
+
+  etaMinutes   Int?
+
+  items        OrderItem[]
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([type])
+  @@index([sessionId])
+  @@index([customerId])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  menuItemId  String?
+  menuItem    MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+
+  // Snapshot fields (so historical orders survive menu changes).
+  name        String
+  unitPriceCents Int?
+
+  quantity    Int
+  modifiers   Json?
+  notes       String?
+
+  @@index([orderId])
+  @@index([menuItemId])
 }
 
